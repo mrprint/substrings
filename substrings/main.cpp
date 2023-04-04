@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
         cerr << "Exception occured: " << ex.what() << endl;
     }
     catch (ifstream::failure ex) {
-        cerr << ex.what() << endl;
+        cerr << "Exception occured: " << ex.what() << endl;
     }
     catch (...) {
         cerr << "Unknown exception occured!" << endl;
