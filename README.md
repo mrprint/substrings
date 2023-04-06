@@ -15,7 +15,7 @@ from vcpkg:
 
 -   parallel-hashmap
 -   tbb
--   boost-program-options
+-   cxxopts
 -   abseil
 
 integrated:

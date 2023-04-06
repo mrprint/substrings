@@ -24,26 +24,20 @@
 #include <fstream>
 #include <filesystem>
 #include <clocale>
-#include <boost/program_options.hpp>
+#include <cxxopts.hpp>
 #include <absl/strings/escaping.h>
 #include "Substrings.hpp"
 #include "timeit.hpp"
-
-namespace po = boost::program_options;
 
 using namespace std;
 using namespace substrings;
 
 bool handle_args(int argc, char* argv[]);
 
-static po::options_description desc("General options");
-static po::positional_options_description pos_descr;
-static po::variables_map vm;
-
 static string input_file;
-static int32_t lmin, lmax;
-static int32_t top;
-static int32_t scale;
+static int64_t lmin, lmax;
+static int64_t top;
+static int64_t scale;
 static bool ascii;
 
 int main(int argc, char* argv[])
@@ -85,33 +79,34 @@ int main(int argc, char* argv[])
 
 static bool handle_args(int argc, char* argv[])
 {
-    desc.add_options()
-        ("input,i", po::value<string>(&input_file), "Input file")
-        ("top,t", po::value<int32_t>(&top)->default_value(30), "Amount of values to get ( >0 )")
-        ("min,m", po::value<int32_t>(&lmin)->default_value(15), "Minimal length of strings to search ( >6 )")
-        ("max,x", po::value<int32_t>(&lmax)->default_value(30), "Maximal length of strings to search ( >min )")
-        ("ascii,a", po::value<bool>(&ascii)->default_value(false), "Search for ascii strings only")
-        ("scale,s", po::value<int32_t>(&scale)->default_value(8), "Multithread loading scale factor ( >0 )")
-        ;
+    cxxopts::Options options("substrings", "The tool designed to find the most frequently occurring sequences in a gigabyte binary file");
+    options.add_options()
+        ("input", "Input file", cxxopts::value<string>())
+        ("t,top", "Amount of values to get ( >0 )", cxxopts::value<int64_t>()->default_value("30"))
+        ("m,min", "Minimal length of strings to search ( >6 )", cxxopts::value<int64_t>()->default_value("15"))
+        ("x,max", "Maximal length of strings to search ( >min )", cxxopts::value<int64_t>()->default_value("30"))
+        ("a,ascii", "Search for ascii strings only", cxxopts::value<bool>()->default_value("false"))
+        ("s,scale", "Multi-threaded load scaling factor ( >0 )", cxxopts::value<int64_t>()->default_value("8"));
 
-    pos_descr.add("input", -1);
-
-    auto print_desc = []() { cerr << desc << endl; };
+    auto print_desc = [&]() { cerr << options.help() << endl; };
 
     try {
-        po::parsed_options parsed =
-            po::command_line_parser(argc, argv)
-            .options(desc)
-            .positional(pos_descr)
-            .run();
-        po::store(parsed, vm);
-        po::notify(vm);
+        options.parse_positional("input");
+        auto result = options.parse(argc, argv);
+
+        input_file = result["input"].as<string>();
+        lmin = result["min"].as<int64_t>();
+        lmax = result["max"].as<int64_t>();
+        top = result["top"].as<int64_t>();
+        scale = result["scale"].as<int64_t>();
+        ascii = result["ascii"].as<bool>();
+
         if (input_file.empty() || top < 1 || lmin < 7 || lmax < lmin || scale < 1) {
             print_desc();
             return false;
         }
     }
-    catch (exception&) {
+    catch (cxxopts::exceptions::exception&) {
         print_desc();
         return false;
     }
