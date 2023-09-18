@@ -34,7 +34,7 @@
 using namespace std;
 using namespace substrings;
 
-Substrings::Substrings(size_t minl, size_t maxl) : minl(minl), maxl(maxl) {}
+Substrings::Substrings(DataSize minl, DataSize maxl) : minl(minl), maxl(maxl) {}
 
 Substrings::~Substrings() {}
 
@@ -55,9 +55,9 @@ void Substrings::process(DataView data, bool ascii)
     EntropyCache ecache;
     keys.clear();
     auto skip = [](auto i) { return i % TOSKIP == 0; };
-    for (size_t start : views::iota( 0u, data.length() - maxl))
+    for (DataSize start : views::iota(0, (DataSize)data.length() - maxl))
     {
-        for (size_t length : views::iota((notsize_t)minl, (notsize_t)maxl + 1u) | views::filter(skip))
+        for (DataSize length : views::iota(minl, maxl + 1) | views::filter(skip))
         {
             DataView subd = data.substr(start, length);
             if (ascii && !is_ascii(subd))
@@ -72,20 +72,20 @@ void Substrings::process(DataView data, bool ascii)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-SubstringsConcurrent::SubstringsConcurrent(size_t minl, size_t maxl) : Substrings(minl, maxl) {}
+SubstringsConcurrent::SubstringsConcurrent(DataSize minl, DataSize maxl) : Substrings(minl, maxl) {}
 
 SubstringsConcurrent::~SubstringsConcurrent() {}
 
-void SubstringsConcurrent::process_c(const string& path, bool ascii, size_t scale)
+void SubstringsConcurrent::process_c(const string& path, bool ascii, DataSize scale)
 {
     TimeIt time_it("Calculation time is");
 
-    const unsigned procs_count = max(thread::hardware_concurrency(), 1u);
+    const DataSize procs_count = max(thread::hardware_concurrency(), 1u);
     auto slci = slice_file(path, maxl, procs_count, scale);
     for_each(
         execution::par,
         slci.begin(), slci.end(),
-        [&, ascii](pair<size_t, size_t> rng)
+        [&, ascii](pair<DataSize, DataSize> rng)
         {
             string tdata;
             {
