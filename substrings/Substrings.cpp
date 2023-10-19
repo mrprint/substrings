@@ -106,7 +106,7 @@ experimental::generator<ResultEl> SubstringsConcurrent::top_c(size_t amount)
 {
     top_w(result, rkeys, amount);
     Matcher matcher(0.8);
-    for (auto& i :
+    for (const auto& i :
         result
         | views::filter(
             [&](auto& i)

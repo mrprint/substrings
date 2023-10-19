@@ -75,14 +75,16 @@ float EntropyCache::estimate(DataView data, DataSize start, DataSize length)
         chr = data[0];
         cstart++;
     }
-    else [[likely]] if (start > cstart || cstart == numeric_limits<size_t>::max()) {
-        ++counter;
-        entropy = shannon_entropy_save(data);
-        cstart = start;
-        clength = length;
-    }
-    else {
-        return shannon_entropy(data);
+    else [[likely]] {
+        if (start > cstart || cstart == numeric_limits<size_t>::max()) {
+            ++counter;
+            entropy = shannon_entropy_save(data);
+            cstart = start;
+            clength = length;
+        }
+        else {
+            return shannon_entropy(data);
+        }
     }
     return entropy;
 }

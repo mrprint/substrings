@@ -65,10 +65,10 @@ int main(int argc, char* argv[])
         }
 #endif
     }
-    catch (filesystem::filesystem_error ex) {
+    catch (filesystem::filesystem_error &ex) {
         cerr << "Exception occured: " << ex.what() << endl;
     }
-    catch (ifstream::failure ex) {
+    catch (ifstream::failure &ex) {
         cerr << "Exception occured: " << ex.what() << endl;
     }
     catch (...) {
