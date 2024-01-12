@@ -24,6 +24,7 @@
 #include <fstream>
 #include <filesystem>
 #include <clocale>
+// #include <format>
 #include <cxxopts.hpp>
 #include <absl/strings/escaping.h>
 #include "Substrings.hpp"
@@ -55,15 +56,18 @@ int main(int argc, char* argv[])
         subs.process_c(input_file, ascii, scale);
         for (auto& [key, value] : subs.top_c(top))
         {
-            cout << value << " \t" << absl::CHexEscape(key) << endl;
+            cout << value << " \t" << absl::CHexEscape(key) << '\n';
+            // cout << value << " \t" << format("[{:?}]", key) << '\n'; // requires c++23
         }
 #else
         subs.process_file(input_file);
         for (auto& [key, value] : subs.top(top))
         {
-            cout << value << " \t" << absl::CHexEscape(key) << endl;
+            cout << value << " \t" << absl::CHexEscape(key) << '\n';
+            // cout << value << " \t" << format("[{:?}]", key) << '\n'; // requires c++23
         }
 #endif
+        cout.flush();
     }
     catch (filesystem::filesystem_error &ex) {
         cerr << "Exception occured: " << ex.what() << endl;

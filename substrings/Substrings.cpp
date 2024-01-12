@@ -36,8 +36,6 @@ using namespace substrings;
 
 Substrings::Substrings(DataSize minl, DataSize maxl) : minl(minl), maxl(maxl) {}
 
-Substrings::~Substrings() {}
-
 void Substrings::process_file(const string& path)
 {
     {
@@ -73,8 +71,6 @@ void Substrings::process(DataView data, bool ascii)
 ////////////////////////////////////////////////////////////////////////////////
 
 SubstringsConcurrent::SubstringsConcurrent(DataSize minl, DataSize maxl) : Substrings(minl, maxl) {}
-
-SubstringsConcurrent::~SubstringsConcurrent() {}
 
 void SubstringsConcurrent::process_c(const string& path, bool ascii, DataSize scale)
 {

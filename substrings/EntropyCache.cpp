@@ -40,8 +40,6 @@ EntropyCache::EntropyCache() :
     chr(0)
 {}
 
-EntropyCache::~EntropyCache() {}
-
 float EntropyCache::estimate(DataView data, DataSize start, DataSize length)
 {
     bool need_save = counter % RESTORE_PER == 0;

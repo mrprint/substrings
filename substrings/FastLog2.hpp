@@ -24,6 +24,7 @@
 
 #include <cmath>
 #include <array>
+#include <bit>
 
 namespace myfastmath
 {
@@ -46,8 +47,8 @@ namespace myfastmath
             }
         }
 
-        float log2(float x) {
-            std::int32_t t = *reinterpret_cast<std::int32_t*>(&x);
+        float log2(float x) { // x>0
+            auto t = std::bit_cast<std::int32_t>(x);
             int exp = (t >> 23) - 0x7f;
             int mantissa = (t >> (23 - Log2PrecisionLevel)) & (Log2TableSize - 1);
             return exp + log_table[mantissa];
@@ -68,7 +69,7 @@ namespace myfastmath
         }
 
         double log2(double x) { // x>0
-            std::int64_t t = *reinterpret_cast<std::int64_t*>(&x);
+            auto t = std::bit_cast<std::int64_t>(x);
             int exp = (t >> 52) - 0x3ff;
             int mantissa = (t >> (52 - Log2PrecisionLevel)) & (Log2TableSize - 1);
             return exp + log_table[mantissa];

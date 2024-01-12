@@ -45,7 +45,6 @@ protected:
     uint8_t chr;
 public:
     EntropyCache();
-    ~EntropyCache();
     float estimate(substrings::DataView data, substrings::DataSize start, substrings::DataSize length);
 protected:
     float shannon_entropy(substrings::DataView data);

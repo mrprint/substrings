@@ -58,7 +58,6 @@ namespace substrings
         DataSize minl, maxl;
     public:
         Substrings(DataSize minl, DataSize maxl);
-        virtual ~Substrings();
         void process_file(const std::string& path);
         void process(DataView data, bool ascii = false);
         auto top(std::size_t amount)
@@ -86,7 +85,6 @@ namespace substrings
         ReducedKeys rkeys;
     public:
         SubstringsConcurrent(DataSize minl, DataSize maxl);
-        virtual ~SubstringsConcurrent();
         void process_c(const std::string& path, bool ascii = false, DataSize scale = 1);
         std::experimental::generator<ResultEl> top_c(std::size_t amount);
     protected:
