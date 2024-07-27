@@ -34,13 +34,15 @@ myfastmath::Log2<float> fastlog2;
 EntropyCache::EntropyCache() :
     freqs{},
     entropy(0.0f),
-    cstart(numeric_limits<DataSize>::max()),
-    clength(numeric_limits<DataSize>::max()),
+    cstart(numeric_limits<size_t>::max()),
+    clength(numeric_limits<size_t>::max()),
     counter(0),
     chr(0)
 {}
 
-float EntropyCache::estimate(DataView data, DataSize start, DataSize length)
+EntropyCache::~EntropyCache() {}
+
+float EntropyCache::estimate(DataView data, size_t start, size_t length)
 {
     bool need_save = counter % RESTORE_PER == 0;
     if (start - cstart == 1 && length == clength && !need_save) [[unlikely]] {

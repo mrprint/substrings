@@ -40,12 +40,13 @@ protected:
 
     std::array<Item, 256> freqs;
     float entropy;
-    substrings::DataSize cstart, clength;
-    substrings::DataSize counter;
+    size_t cstart, clength;
+    size_t counter;
     uint8_t chr;
 public:
     EntropyCache();
-    float estimate(substrings::DataView data, substrings::DataSize start, substrings::DataSize length);
+    ~EntropyCache();
+    float estimate(substrings::DataView data, std::size_t start, std::size_t length);
 protected:
     float shannon_entropy(substrings::DataView data);
     float shannon_entropy_save(substrings::DataView data);

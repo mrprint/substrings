@@ -29,7 +29,6 @@
 #include <ranges>
 #include <algorithm>
 #include <filesystem>
-#include <iostream>
 #include <experimental/generator>
 #include <parallel_hashmap/phmap.h>
 #include <tbb/concurrent_unordered_map.h>
@@ -39,11 +38,10 @@ namespace substrings
 
     constexpr auto MAX_ENT = 3.5f;
     constexpr auto MIN_ENT = 2.5f;
-    constexpr auto TOSKIP = 3;
+    constexpr auto TOSKIP = 3u;
 
     using Data = std::string;
     using DataView = std::string_view;
-    using DataSize = std::streamsize;
     using Keys = phmap::flat_hash_map<DataView, std::size_t>;
     using ResultEl = std::pair<Data, std::size_t>;
     using Result = std::vector<ResultEl>;
@@ -55,9 +53,10 @@ namespace substrings
         Data sdata;
         Keys keys;
         Result result;
-        DataSize minl, maxl;
+        std::size_t minl, maxl;
     public:
-        Substrings(DataSize minl, DataSize maxl);
+        Substrings(std::size_t minl, std::size_t maxl);
+        virtual ~Substrings();
         void process_file(const std::string& path);
         void process(DataView data, bool ascii = false);
         auto top(std::size_t amount)
@@ -80,25 +79,26 @@ namespace substrings
         }
     };
 
-    class SubstringsConcurrent : public Substrings {
+    class SubstringsConcurrent: public Substrings {
     protected:
         ReducedKeys rkeys;
     public:
-        SubstringsConcurrent(DataSize minl, DataSize maxl);
-        void process_c(const std::string& path, bool ascii = false, DataSize scale = 1);
+        SubstringsConcurrent(std::size_t minl, std::size_t maxl);
+        virtual ~SubstringsConcurrent();
+        void process_c(const std::string& path, bool ascii = false, std::size_t scale = 1);
         std::experimental::generator<ResultEl> top_c(std::size_t amount);
     protected:
         void accumulate(ReducedKeys& rkeys);
-        static auto slice_file(const std::string& path, DataSize maxl, DataSize pool_size, DataSize scale = 1)
+        static auto slice_file(const std::string& path, std::size_t maxl, unsigned pool_size, unsigned scale = 1)
         {
-            const DataSize psize = pool_size * scale;
-            const DataSize fsize = std::filesystem::file_size(path);
-            const auto dv = fsize / psize;
-            const auto md = fsize % psize;
-            return std::views::iota((DataSize)0, psize)
-                | std::views::transform([=](auto i) {return std::pair<DataSize, DataSize>{
-                (i == 0) ? i * dv : i * dv - maxl,
-                    (i < psize - 1) ? ((i == 0) ? dv : dv + maxl) : dv + maxl + md}; });
+            std::size_t psize = pool_size * scale;
+            const auto fsize = std::filesystem::file_size(path);
+            std::size_t dv = fsize / psize;
+            std::size_t md = fsize % psize;
+            return std::views::iota(std::size_t{ 0 }, psize)
+                | std::views::transform([=](auto i) {return std::pair<std::size_t, std::size_t>{
+                (i == 0u) ? i * dv : i * dv - maxl,
+                    (i < psize - 1u) ? ((i == 0u) ? dv : dv + maxl) : dv + maxl + md}; });
         }
     };
 
