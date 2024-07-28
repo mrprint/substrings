@@ -35,7 +35,7 @@ protected:
 
     struct Item {
         float entropy;
-        std::size_t freq;
+        unsigned freq;
     };
 
     std::array<Item, 256> freqs;
@@ -46,7 +46,7 @@ protected:
 public:
     EntropyCache();
     ~EntropyCache();
-    float estimate(substrings::DataView data, std::size_t start, std::size_t length);
+    float estimate(substrings::DataView data, std::size_t start, unsigned length);
 protected:
     float shannon_entropy(substrings::DataView data);
     float shannon_entropy_save(substrings::DataView data);

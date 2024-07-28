@@ -42,7 +42,7 @@ EntropyCache::EntropyCache() :
 
 EntropyCache::~EntropyCache() {}
 
-float EntropyCache::estimate(DataView data, size_t start, size_t length)
+float EntropyCache::estimate(DataView data, size_t start, unsigned length)
 {
     bool need_save = counter % RESTORE_PER == 0;
     if (start - cstart == 1 && length == clength && !need_save) [[unlikely]] {
@@ -92,14 +92,14 @@ float EntropyCache::estimate(DataView data, size_t start, size_t length)
 float EntropyCache::shannon_entropy(DataView data)
 {
     float ent = 0.0;
-    array<size_t, 256> lfreqs{};
+    array<unsigned, 256> lfreqs{};
 
     if (data.length() < 2) [[unlikely]]
         return ent;
     float size = data.length();
     for (uint8_t c : data) [[likely]]
         lfreqs[c]++;
-    for (size_t i : lfreqs)
+    for (unsigned i : lfreqs)
     {
         if (i != 0) [[unlikely]]
             ent -= calculate(i, size);
@@ -119,7 +119,7 @@ float EntropyCache::shannon_entropy_save(DataView data)
     float size = data.length();
     for (uint8_t c : data) [[likely]]
         freqs[c].freq++;
-    for (size_t i = 0; i < freqs.size(); ++i)
+    for (unsigned i = 0; i < freqs.size(); ++i)
     {
         auto& tfrq = freqs[i];
         if (tfrq.freq != 0) [[unlikely]] {

@@ -87,8 +87,8 @@ static bool handle_args(int argc, char* argv[])
     options.add_options()
         ("input", "Input file", cxxopts::value<string>())
         ("t,top", "Amount of values to get ( >0 )", cxxopts::value<int64_t>()->default_value("30"))
-        ("m,min", "Minimal length of strings to search ( >6 )", cxxopts::value<int64_t>()->default_value("15"))
-        ("x,max", "Maximal length of strings to search ( >min )", cxxopts::value<int64_t>()->default_value("30"))
+        ("m,min", format("Minimal length of strings to search ( 6 < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("15"))
+        ("x,max", format("Maximal length of strings to search ( min < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("30"))
         ("a,ascii", "Search for ascii strings only", cxxopts::value<bool>()->default_value("false"))
         ("s,scale", "Multi-threaded load scaling factor ( >0 )", cxxopts::value<int64_t>()->default_value("8"));
 
