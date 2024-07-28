@@ -1,4 +1,4 @@
-# The tool designed to find the most frequently occurring sequences in a gigabyte binary file
+# The tool designed to find the most frequently occurring sequences in a gigabyte-sized binary file
 
 For Windows at the moment.
 
