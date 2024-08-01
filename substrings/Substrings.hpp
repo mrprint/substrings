@@ -24,14 +24,12 @@
 
 #include <string>
 #include <vector>
-#include <unordered_map>
 #include <string_view>
 #include <ranges>
 #include <algorithm>
 #include <filesystem>
 #include <experimental/generator>
 #include <parallel_hashmap/phmap.h>
-#include <tbb/concurrent_unordered_map.h>
 
 namespace substrings
 {
@@ -45,7 +43,7 @@ namespace substrings
     using Keys = phmap::flat_hash_map<DataView, std::size_t>;
     using ResultEl = std::pair<Data, std::size_t>;
     using Result = std::vector<ResultEl>;
-    using ReducedKeys = tbb::concurrent_unordered_map<Data, std::size_t>;
+    using ReducedKeys = phmap::flat_hash_map<Data, std::size_t>;
 
     class Substrings
     {

@@ -38,11 +38,17 @@ public:
     explicit TimeIt(const std::string& msg) : stime(std::chrono::high_resolution_clock::now()), msg(msg) {}
     ~TimeIt()
     {
-        auto ftime = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> dur = ftime - stime;
-        if (!msg.empty())
-            std::cerr << msg << " ";
-        std::cerr << dur.count() << "ms" << std::endl;
+        try
+        {
+            auto ftime = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::milli> dur = ftime - stime;
+            if (!msg.empty())
+                std::cerr << msg << " ";
+            std::cerr << dur.count() << "ms" << std::endl;
+        }
+        catch (...)
+        {
+        }
     }
 #else
     TimeIt() {}

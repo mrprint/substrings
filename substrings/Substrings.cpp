@@ -65,7 +65,7 @@ void Substrings::process(DataView data, bool ascii)
             float ent = ecache.estimate(subd, start, length);
             if (ent >= MAX_ENT || ent <= MIN_ENT)
                 break;
-            keys.try_emplace(subd, 0).first->second++;
+            keys[subd]++;
         }
     }
 }
@@ -80,24 +80,30 @@ void SubstringsConcurrent::process_c(const string& path, bool ascii, size_t scal
 {
     TimeIt time_it("Calculation time is");
 
+    mutex iomtx, accmtx;
+
     const unsigned procs_count = max(thread::hardware_concurrency(), 1u);
     auto slci = slice_file(path, maxl, procs_count, scale);
     for_each(
         execution::par,
         slci.begin(), slci.end(),
-        [&, ascii](pair<size_t, size_t> rng)
+        [&, ascii](const pair<size_t, size_t>& rng)
         {
-            string tdata;
+            string tdata(rng.second, '\0');
             {
+                lock_guard lock(iomtx); // make file access sequential
                 ifstream f(path, ios::in | ios::binary);
-                string fdata(rng.second, '\0');
                 f.seekg(rng.first);
-                f.read(fdata.data(), rng.second);
-                tdata.swap(fdata);
+                f.read(tdata.data(), rng.second);
             }
+
             SubstringsConcurrent subs(minl, maxl);
             subs.process(tdata, ascii);
-            subs.accumulate(rkeys);
+
+            {
+                lock_guard lock(accmtx);
+                subs.accumulate(rkeys);
+            }
         }
     );
 }
@@ -109,7 +115,7 @@ experimental::generator<ResultEl> SubstringsConcurrent::top_c(size_t amount)
     for (const auto& i :
         result
         | views::filter(
-            [&](auto& i)
+            [&](const auto& i)
             {
                 bool matchs = matcher.get_close_matches(i.first);
                 matcher.append(i.first);
@@ -124,13 +130,9 @@ void SubstringsConcurrent::accumulate(ReducedKeys& rkeys)
 {
     for (auto& [key, value] : keys)
     {
-        if (value > 1) {
-            // tbb::concurrent_unordered_map has no try_emplace
-            string skey{ key };
-            if (rkeys.contains(skey))
-                rkeys[skey] += value;
-            else
-                rkeys[skey] = value;
+        if (value > 1)
+        {
+            rkeys[string(key)] += value;
         }
     }
 }
