@@ -20,6 +20,6 @@ from vcpkg:
 
 integrated:
 
--   difflib <https://github.com/duckie/difflib>
+-   difflib <https://github.com/noscript/difflib>
 
 See project including/linking options you may have to alter.
