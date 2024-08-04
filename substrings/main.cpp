@@ -43,41 +43,44 @@ static bool ascii;
 
 int main(int argc, char* argv[])
 {
-    TimeIt time_it("Total time is");
+    {
+        TimeIt time_it("Total time is");
 
-    setlocale(LC_ALL, "");
+        setlocale(LC_ALL, "");
 
-    try {
-        if (!handle_args(argc, argv))
-            return 1;
+        try {
+            if (!handle_args(argc, argv))
+                return 1;
 
-        SubstringsConcurrent subs(lmin, lmax);
+            SubstringsConcurrent subs(lmin, lmax);
 #if !defined(_DEBUG) && !defined(DEBUG)
-        subs.process_c(input_file, ascii, scale);
-        for (auto& [key, value] : subs.top_c(top))
-        {
-            cout << value << " \t" << absl::CHexEscape(key) << '\n';
-            // cout << value << " \t" << format("[{:?}]", key) << '\n'; // requires c++23
-        }
+            subs.process_c(input_file, ascii, scale);
+            for (auto& [key, value] : subs.top_c(top))
+            {
+                cout << value << " \t" << absl::CHexEscape(key) << '\n';
+                // cout << value << " \t" << format("[{:?}]", key) << '\n'; // requires c++23
+            }
 #else
-        subs.process_file(input_file);
-        for (auto& [key, value] : subs.top(top))
-        {
-            cout << value << " \t" << absl::CHexEscape(key) << '\n';
-            // cout << value << " \t" << format("[{:?}]", key) << '\n'; // requires c++23
-        }
+            subs.process_file(input_file);
+            for (auto& [key, value] : subs.top(top))
+            {
+                cout << value << " \t" << absl::CHexEscape(key) << '\n';
+                // cout << value << " \t" << format("[{:?}]", key) << '\n'; // requires c++23
+            }
 #endif
-        cout.flush();
+            cout.flush();
+        }
+        catch (filesystem::filesystem_error& ex) {
+            cerr << "Exception occured: " << ex.what() << endl;
+        }
+        catch (ifstream::failure& ex) {
+            cerr << "Exception occured: " << ex.what() << endl;
+        }
+        catch (...) {
+            cerr << "Unknown exception occured!" << endl;
+        }
     }
-    catch (filesystem::filesystem_error &ex) {
-        cerr << "Exception occured: " << ex.what() << endl;
-    }
-    catch (ifstream::failure &ex) {
-        cerr << "Exception occured: " << ex.what() << endl;
-    }
-    catch (...) {
-        cerr << "Unknown exception occured!" << endl;
-    }
+    terminate(); // hack to avoid unwanted waiting
     return 0;
 }
 

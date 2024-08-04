@@ -25,6 +25,7 @@
 #include <chrono>
 #include <string>
 #include <iostream>
+#include <format>
 
 class TimeIt final {
 protected:
@@ -44,7 +45,7 @@ public:
             std::chrono::duration<double, std::milli> dur = ftime - stime;
             if (!msg.empty())
                 std::cerr << msg << " ";
-            std::cerr << dur.count() << "ms" << std::endl;
+            std::cerr << std::format("{:%T}", dur) << std::endl;
         }
         catch (...)
         {
