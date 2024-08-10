@@ -72,7 +72,7 @@ namespace substrings
             result.resize(maxl * amount);
             partial_sort_copy(
                 keys.begin(), keys.end(), result.begin(), result.end(),
-                [](auto& l, auto& r) { return (l.second == r.second) ? l.first.length() > r.first.length() : l.second > r.second; }
+                [](auto& l, auto& r) { return (l.second == r.second) ? l.first > r.first : l.second > r.second; }
             );
         }
     };
