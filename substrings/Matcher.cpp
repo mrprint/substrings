@@ -47,12 +47,11 @@ void Matcher::append(substrings::DataView str)
 bool Matcher::get_close_matches(substrings::DataView str)
 {
     auto matcher = difflib::MakeSequenceMatcher(substrings::DataView(), str);
-    return ranges::any_of(
-        data,
-        [&](auto& i)
-        {
-            matcher.set_seq1(i);
-            return matcher.ratio() >= ratio;
-        }
-    );
+    for (const auto& i : data | views::reverse)
+    {
+        matcher.set_seq1(i);
+        if (matcher.ratio() >= ratio)
+            return true;
+    }
+    return false;
 }
