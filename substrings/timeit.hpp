@@ -30,7 +30,7 @@
 class TimeIt final {
 protected:
 #if defined(TIME_IT)
-    std::chrono::steady_clock::time_point stime;
+    std::chrono::high_resolution_clock::time_point stime;
     std::string msg;
 #endif
 public:
