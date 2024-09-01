@@ -16,7 +16,6 @@ Project depends on
 
 from vcpkg:
 
--   tbb
 -   abseil
 
 See project including/linking options you may have to alter.

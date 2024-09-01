@@ -117,7 +117,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>absl_base.lib;absl_stacktrace.lib;absl_symbolize.lib;absl_malloc_internal.lib;absl_log_internal_conditions.lib;absl_throw_delegate.lib;absl_raw_logging_internal.lib;absl_int128.lib;absl_strings.lib;absl_string_view.lib;absl_strings_internal.lib;absl_time_zone.lib;absl_time.lib;tbb12_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>absl_base.lib;absl_stacktrace.lib;absl_symbolize.lib;absl_malloc_internal.lib;absl_log_internal_conditions.lib;absl_throw_delegate.lib;absl_raw_logging_internal.lib;absl_int128.lib;absl_strings.lib;absl_string_view.lib;absl_strings_internal.lib;absl_time_zone.lib;absl_time.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\projects\vcpkg\installed\x64-win-llvm-lto-static-md\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -147,7 +147,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>absl_base.lib;absl_stacktrace.lib;absl_symbolize.lib;absl_malloc_internal.lib;absl_log_internal_conditions.lib;absl_throw_delegate.lib;absl_raw_logging_internal.lib;absl_int128.lib;absl_strings.lib;absl_string_view.lib;absl_strings_internal.lib;absl_time_zone.lib;absl_time.lib;tbb12.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>absl_base.lib;absl_stacktrace.lib;absl_symbolize.lib;absl_malloc_internal.lib;absl_log_internal_conditions.lib;absl_throw_delegate.lib;absl_raw_logging_internal.lib;absl_int128.lib;absl_strings.lib;absl_string_view.lib;absl_strings_internal.lib;absl_time_zone.lib;absl_time.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\projects\vcpkg\installed\x64-win-llvm-lto-static-md\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
