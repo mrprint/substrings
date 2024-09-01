@@ -17,5 +17,3 @@ Project depends on
 from vcpkg:
 
 -   abseil
-
-See project including/linking options you may have to alter.
