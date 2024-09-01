@@ -24,7 +24,7 @@
 #include "Matcher.hpp"
 
 #define DIFFLIB_ENABLE_EXTERN_MACROS
-#include "thirdpts/difflib.h"
+#include <difflib.h>
 
 using namespace std;
 

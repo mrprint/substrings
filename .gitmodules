@@ -1,0 +1,9 @@
+[submodule "substrings/thirdpts/difflib"]
+	path = substrings/thirdpts/difflib
+	url = https://github.com/noscript/difflib.git
+[submodule "substrings/thirdpts/cxxopts"]
+	path = substrings/thirdpts/cxxopts
+	url = https://github.com/jarro2783/cxxopts
+[submodule "substrings/thirdpts/parallel-hashmap"]
+	path = substrings/thirdpts/parallel-hashmap
+	url = https://github.com/greg7mdp/parallel-hashmap

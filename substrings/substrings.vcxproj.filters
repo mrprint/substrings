@@ -44,8 +44,5 @@
     <ClInclude Include="FastLog2.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="thirdpts\difflib.h">
-      <Filter>Header files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

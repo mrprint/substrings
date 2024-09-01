@@ -9,17 +9,14 @@ and limit the number of results.
 
 #### Compiling
 
-Depends on
+Initialize submodules with command
+    git submodule update --init --recursive
+
+Project depends on
 
 from vcpkg:
 
--   parallel-hashmap
 -   tbb
--   cxxopts
 -   abseil
-
-integrated:
-
--   difflib <https://github.com/noscript/difflib>
 
 See project including/linking options you may have to alter.

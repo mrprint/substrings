@@ -112,12 +112,12 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\projects\vcpkg\installed\x64-win-llvm-lto-static-md\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>thirdpts\parallel-hashmap\parallel_hashmap;thirdpts\difflib\src;thirdpts\cxxopts\include;D:\projects\vcpkg\installed\x64-win-llvm-lto-static-md\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>absl_base.lib;absl_stacktrace.lib;absl_symbolize.lib;absl_malloc_internal.lib;absl_log_internal_conditions.lib;absl_throw_delegate.lib;absl_raw_logging_internal.lib;absl_int128.lib;absl_strings.lib;absl_strings_internal.lib;absl_time_zone.lib;absl_time.lib;tbb12_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>absl_base.lib;absl_stacktrace.lib;absl_symbolize.lib;absl_malloc_internal.lib;absl_log_internal_conditions.lib;absl_throw_delegate.lib;absl_raw_logging_internal.lib;absl_int128.lib;absl_strings.lib;absl_string_view.lib;absl_strings_internal.lib;absl_time_zone.lib;absl_time.lib;tbb12_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\projects\vcpkg\installed\x64-win-llvm-lto-static-md\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -139,7 +139,7 @@
       <StringPooling>true</StringPooling>
       <Optimization>MaxSpeed</Optimization>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>D:\projects\vcpkg\installed\x64-win-llvm-lto-static-md\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>thirdpts\parallel-hashmap\parallel_hashmap;thirdpts\difflib\src;thirdpts\cxxopts\include;D:\projects\vcpkg\installed\x64-win-llvm-lto-static-md\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -162,7 +162,6 @@
     <ClInclude Include="FastLog2.hpp" />
     <ClInclude Include="Matcher.hpp" />
     <ClInclude Include="Substrings.hpp" />
-    <ClInclude Include="thirdpts\difflib.h" />
     <ClInclude Include="timeit.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

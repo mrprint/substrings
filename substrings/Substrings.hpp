@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <experimental/generator>
-#include <parallel_hashmap/phmap.h>
+#include <phmap.h>
 
 namespace substrings
 {
