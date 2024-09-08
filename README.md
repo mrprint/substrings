@@ -13,5 +13,5 @@ and limit the number of results.
 Initialize submodules with command
 >git submodule update --init --recursive
 
-Tt's known that this tool can be built in Windows, using MSVC and MinGW-w64,
+Tt's known that this tool can be built in Windows, using MSVC or MinGW-w64,
 as well as on Linux.
