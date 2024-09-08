@@ -1,6 +1,6 @@
 set(PROJECT_NAME substrings)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 ################################################################################
 # Source groups
@@ -19,6 +19,8 @@ set(Source_files
     "main.cpp"
     "Matcher.cpp"
     "Substrings.cpp"
+    "$<$<BOOL:${MSVC}>:process_c_ep.cpp>"
+    "$<$<NOT:$<BOOL:${MSVC}>>:process_c_thirdp.cpp>"
 )
 source_group("Source files" FILES ${Source_files})
 
@@ -41,6 +43,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 set_target_properties(${PROJECT_NAME} PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
 )
+
+find_package(absl CONFIG REQUIRED)
+
 ################################################################################
 # Include directories
 ################################################################################
@@ -48,24 +53,36 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/thirdpts/parallel-hashmap/parallel_hashmap;"
     "${CMAKE_CURRENT_SOURCE_DIR}/thirdpts/difflib/src;"
     "${CMAKE_CURRENT_SOURCE_DIR}/thirdpts/cxxopts/include;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdpts/taskflow;"
 )
 
 ################################################################################
 # Compile definitions
 ################################################################################
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    "$<$<CONFIG:Debug>:"
-        "_DEBUG;"
-        "UNICODE;"
-        "_UNICODE"
-    ">"
-    "$<$<CONFIG:Release>:"
-        "NDEBUG;"
-        "TIME_IT;"
-        "_MBCS"
-    ">"
-    "_CONSOLE"
-)
+if(MSVC)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "$<$<CONFIG:Debug>:"
+            "_DEBUG;"
+            "_MBCS"
+        ">"
+        "$<$<CONFIG:Release>:"
+            "NDEBUG;"
+            "TIME_IT;"
+            "_MBCS"
+        ">"
+        "_CONSOLE"
+    )
+else()
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "$<$<CONFIG:Debug>:"
+            "_DEBUG;"
+        ">"
+        "$<$<CONFIG:Release>:"
+            "NDEBUG;"
+            "TIME_IT;"
+        ">"
+    )
+endif()
 
 ################################################################################
 # Compile and link options
@@ -101,26 +118,25 @@ if(MSVC)
         >
         /SUBSYSTEM:CONSOLE
     )
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Release>:
+        -Ofast;
+        -fpic;
+        -ftree-vectorize;
+        -DNDEBUG
+    >
+    -march=x86-64-v3;
+    ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
+    ${DEFAULT_CXX_EXCEPTION_HANDLING}
+    )
 endif()
-
-find_package(absl CONFIG REQUIRED)
 
 ################################################################################
 # Dependencies
 ################################################################################
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
-    "absl::base;"
-    "absl::stacktrace;"
-    "absl::symbolize;"
-    "absl::malloc_internal;"
-    "absl::log_internal_conditions;"
-    "absl::throw_delegate;"
-    "absl::raw_logging_internal;"
-    "absl::int128;"
     "absl::strings;"
-    "absl::string_view;"
-    "absl::strings_internal;"
-    "absl::time_zone;"
-    "absl::time"
+    "$<$<NOT:$<BOOL:${MSVC}>>:-latomic>"
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE "${ADDITIONAL_LIBRARY_DEPENDENCIES}")

@@ -1,19 +1,17 @@
-# The tool designed to find the most frequently occurring sequences in a gigabyte-sized binary file
+# The tool designed to find the most common sequences in a binary file of gigabytes in size
 
-For Windows at the moment.
+Originally, it was desighned to analyze a crush dump.
+You require a c++ compiler with standard 23's generator support, e.g. g++14 or higher.
 
 #### Usage
 
-Run to view all options. You may need to set your desired length range
+Run to view all options. You may require to set up your desired range of length
 and limit the number of results.
 
 #### Compiling
 
 Initialize submodules with command
-    git submodule update --init --recursive
+>git submodule update --init --recursive
 
-Project depends on
-
-from vcpkg:
-
--   abseil
+Tt's known that this tool can be built in Windows, using MSVC and MinGW-w64,
+as well as on Linux.

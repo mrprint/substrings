@@ -28,7 +28,15 @@
 #include <ranges>
 #include <algorithm>
 #include <filesystem>
+
+#if defined(_MSC_BUILD)
 #include <experimental/generator>
+namespace generator_ns = std::experimental;
+#else
+#include <generator>
+namespace generator_ns = std;
+#endif
+
 #include <phmap.h>
 
 namespace substrings
@@ -84,7 +92,7 @@ namespace substrings
         SubstringsConcurrent(std::size_t minl, std::size_t maxl);
         virtual ~SubstringsConcurrent();
         void process_c(const std::string& path, bool ascii = false, std::size_t scale = 1);
-        std::experimental::generator<ResultEl> top_c(std::size_t amount);
+        generator_ns::generator<ResultEl> top_c(std::size_t amount);
     protected:
         void accumulate(ReducedKeys& rkeys);
         static auto slice_file(const std::string& path, std::size_t maxl, unsigned pool_size, unsigned scale = 1)

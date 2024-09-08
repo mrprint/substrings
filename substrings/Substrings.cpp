@@ -23,9 +23,6 @@
 #include <ranges>
 #include <fstream>
 #include <algorithm>
-#include <array>
-#include <thread>
-#include <execution>
 #include "Substrings.hpp"
 #include "EntropyCache.hpp"
 #include "Matcher.hpp"
@@ -76,39 +73,7 @@ SubstringsConcurrent::SubstringsConcurrent(size_t minl, size_t maxl) : Substring
 
 SubstringsConcurrent::~SubstringsConcurrent() {}
 
-void SubstringsConcurrent::process_c(const string& path, bool ascii, size_t scale)
-{
-    TimeIt time_it("Calculation time is");
-
-    mutex iomtx, accmtx;
-
-    const unsigned procs_count = max(thread::hardware_concurrency(), 1u);
-    auto slci = slice_file(path, maxl, procs_count, scale);
-    for_each(
-        execution::par,
-        slci.begin(), slci.end(),
-        [&, ascii](const pair<size_t, size_t>& rng)
-        {
-            string tdata(rng.second, '\0');
-            {
-                lock_guard lock(iomtx); // make file access sequential
-                ifstream f(path, ios::in | ios::binary);
-                f.seekg(rng.first);
-                f.read(tdata.data(), rng.second);
-            }
-
-            SubstringsConcurrent subs(minl, maxl);
-            subs.process(tdata, ascii);
-
-            {
-                lock_guard lock(accmtx);
-                subs.accumulate(rkeys);
-            }
-        }
-    );
-}
-
-experimental::generator<ResultEl> SubstringsConcurrent::top_c(size_t amount)
+generator_ns::generator<ResultEl> SubstringsConcurrent::top_c(size_t amount)
 {
     top_w(result, rkeys, amount);
     Matcher matcher(0.8);

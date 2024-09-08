@@ -33,7 +33,7 @@
 using namespace std;
 using namespace substrings;
 
-bool handle_args(int argc, char* argv[]);
+static bool handle_args(int argc, char* argv[]);
 
 static string input_file;
 static int64_t lmin, lmax;
@@ -54,14 +54,14 @@ int main(int argc, char* argv[])
         SubstringsConcurrent subs(lmin, lmax);
 #if !defined(_DEBUG) && !defined(DEBUG)
         subs.process_c(input_file, ascii, scale);
-        for (auto& [key, value] : subs.top_c(top))
+        for (auto&& [key, value] : subs.top_c(top))
         {
             cout << value << " \t" << absl::CHexEscape(key) << '\n';
             // cout << value << " \t" << format("[{:?}]", key) << '\n'; // requires c++23
         }
 #else
         subs.process_file(input_file);
-        for (auto& [key, value] : subs.top(top))
+        for (auto&& [key, value] : subs.top(top))
         {
             cout << value << " \t" << absl::CHexEscape(key) << '\n';
             // cout << value << " \t" << format("[{:?}]", key) << '\n'; // requires c++23
