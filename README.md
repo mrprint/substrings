@@ -1,6 +1,6 @@
 # The tool designed to find the most common sequences in a binary file of gigabytes in size
 
-Originally, it was desighned to analyze a crush dump.
+It was originally aimed at analyzing crush dumps.
 You require a c++ compiler with standard 23's generator support, e.g. g++14 or higher.
 
 #### Usage
