@@ -122,7 +122,7 @@ else()
     target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:Release>:
         -Ofast;
-        -fpic;
+        -flto;
         -ftree-vectorize;
         -DNDEBUG
     >
