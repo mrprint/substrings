@@ -51,10 +51,10 @@ int main(int argc, char* argv[])
         if (!handle_args(argc, argv))
             return 1;
 
-        SubstringsConcurrent subs(lmin, lmax);
+        SubstringsConcurrent subs(lmin, lmax, top);
 #if !defined(_DEBUG) && !defined(DEBUG)
         subs.process_c(input_file, ascii, scale);
-        for (auto&& [key, value] : subs.top_c(top))
+        for (auto&& [key, value] : subs.top_c())
         {
             cout << value << " \t" << absl::CHexEscape(key) << '\n';
             // cout << value << " \t" << format("[{:?}]", key) << '\n'; // requires c++23
@@ -90,7 +90,7 @@ static bool handle_args(int argc, char* argv[])
         ("m,min", format("Minimal length of strings to search ( 6 < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("15"))
         ("x,max", format("Maximal length of strings to search ( min < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("30"))
         ("a,ascii", "Search for ascii strings only", cxxopts::value<bool>()->default_value("false"))
-        ("s,scale", "Multi-threaded load scaling factor ( >0 )", cxxopts::value<int64_t>()->default_value("8"));
+        ("s,scale", "Multi-threaded load scaling factor. Using 0 means trying to calculate it heuristically", cxxopts::value<int64_t>()->default_value("0"));
 
     auto print_desc = [&]() { cerr << options.help() << endl; };
 
@@ -105,7 +105,7 @@ static bool handle_args(int argc, char* argv[])
         scale = result["scale"].as<int64_t>();
         ascii = result["ascii"].as<bool>();
 
-        if (input_file.empty() || top < 1 || lmin < 7 || lmax < lmin || scale < 1) {
+        if (input_file.empty() || top < 1 || lmin < 7 || lmax < lmin) {
             print_desc();
             return false;
         }

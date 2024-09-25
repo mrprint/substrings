@@ -75,9 +75,13 @@ namespace substrings
         {
             return !std::ranges::any_of(data, [](std::uint8_t c) {return c > 127; });
         }
+        size_t calc_reserve(std::size_t amount) const
+        {
+            return amount * maxl * (maxl - minl + 1) / TOSKIP;
+        }
         void top_w(auto& result, const auto& keys, std::size_t amount)
         {
-            result.resize(maxl * amount);
+            result.resize(std::min(keys.size(), calc_reserve(amount)));
             partial_sort_copy(
                 keys.begin(), keys.end(), result.begin(), result.end(),
                 [](auto& l, auto& r) { return (l.second == r.second) ? l.first > r.first : l.second > r.second; }
@@ -87,24 +91,35 @@ namespace substrings
 
     class SubstringsConcurrent: public Substrings {
     protected:
+        struct Estimations {
+            std::size_t psize, dv, md;
+            unsigned pool_size, scale;
+        };
+
         ReducedKeys rkeys;
+        std::size_t ram_size;
+        std::size_t amount;
+        unsigned trunc_cnt;
     public:
-        SubstringsConcurrent(std::size_t minl, std::size_t maxl);
+        SubstringsConcurrent(std::size_t minl, std::size_t maxl, std::size_t amount);
         virtual ~SubstringsConcurrent();
         void process_c(const std::string& path, bool ascii = false, std::size_t scale = 1);
-        generator_ns::generator<ResultEl> top_c(std::size_t amount);
+        generator_ns::generator<ResultEl> top_c();
     protected:
-        void accumulate(ReducedKeys& rkeys);
-        static auto slice_file(const std::string& path, std::size_t maxl, unsigned pool_size, unsigned scale = 1)
+        size_t calc_reserve() const
         {
-            std::size_t psize = pool_size * scale;
-            const auto fsize = std::filesystem::file_size(path);
-            std::size_t dv = fsize / psize;
-            std::size_t md = fsize % psize;
-            return std::views::iota(std::size_t{ 0 }, psize)
+            return Substrings::calc_reserve(amount);
+        }
+        void process_body(const std::string& path, const Estimations& estms, bool ascii = false);
+        void accumulate(ReducedKeys& rkeys, std::size_t drop = 1);
+        Estimations tune_on_size(const std::string& path, unsigned pool_size, unsigned scale) const;
+        void truncate();
+        static auto slice(const Estimations estm, std::size_t maxl)
+        {
+            return std::views::iota(static_cast<std::size_t>(0), estm.psize)
                 | std::views::transform([=](auto i) {return std::pair<std::size_t, std::size_t>{
-                (i == 0u) ? i * dv : i * dv - maxl,
-                    (i < psize - 1u) ? ((i == 0u) ? dv : dv + maxl) : dv + maxl + md}; });
+                (i == 0u) ? i * estm.dv : i * estm.dv - maxl,
+                    (i < estm.psize - 1u) ? ((i == 0u) ? estm.dv : estm.dv + maxl) : estm.dv + maxl + estm.md}; });
         }
     };
 

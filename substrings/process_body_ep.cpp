@@ -22,46 +22,51 @@
 
 #include <ranges>
 #include <fstream>
-#include <thread>
-#include <taskflow/taskflow.hpp>
-#include <taskflow/algorithm/for_each.hpp>
+#include <mutex>
+#include <semaphore>
+#include <execution>
 #include "Substrings.hpp"
 #include "timeit.hpp"
 
 using namespace std;
 using namespace substrings;
 
-void SubstringsConcurrent::process_c(const string& path, bool ascii, size_t scale)
+void SubstringsConcurrent::process_body(const string& path, const Estimations& estms, bool ascii)
 {
     TimeIt time_it("Calculation time is");
 
     mutex iomtx, accmtx;
-    tf::Executor executor;
-    tf::Taskflow taskflow;
+    counting_semaphore wsmp(estms.pool_size);
 
-    const unsigned procs_count = max(thread::hardware_concurrency(), 1u);
-    auto slci = slice_file(path, maxl, procs_count, scale);
-
-    taskflow.for_each(slci.begin(), slci.end(),
+    auto slci = slice(estms, maxl);
+    for_each(
+        execution::par,
+        slci.begin(), slci.end(),
         [&, ascii](const pair<size_t, size_t>& rng)
         {
+            wsmp.acquire();
+
             string tdata(rng.second, '\0');
             {
-                lock_guard lock(iomtx); // make file access sequential
+                scoped_lock lock(iomtx); // make file access sequential
                 ifstream f(path, ios::in | ios::binary);
                 f.seekg(rng.first);
                 f.read(tdata.data(), rng.second);
             }
 
-            SubstringsConcurrent subs(minl, maxl);
+            SubstringsConcurrent subs(minl, maxl, amount);
             subs.process(tdata, ascii);
 
             {
-                lock_guard lock(accmtx);
+                scoped_lock lock(accmtx);
                 subs.accumulate(rkeys);
+                if (++trunc_cnt >= estms.pool_size / 2) {
+                    trunc_cnt = 0;
+                    truncate();
+                }
             }
-        });
 
-    executor.run(taskflow).get();
-    //taskflow.dump(std::cout);
+            wsmp.release();
+        }
+    );
 }

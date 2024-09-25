@@ -22,10 +22,12 @@
 
 #include <ranges>
 #include <fstream>
+#include <thread>
 #include <algorithm>
 #include "Substrings.hpp"
 #include "EntropyCache.hpp"
 #include "Matcher.hpp"
+#include "system.hpp"
 #include "timeit.hpp"
 
 using namespace std;
@@ -69,11 +71,17 @@ void Substrings::process(DataView data, bool ascii)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-SubstringsConcurrent::SubstringsConcurrent(size_t minl, size_t maxl) : Substrings(minl, maxl) {}
+SubstringsConcurrent::SubstringsConcurrent(size_t minl, size_t maxl, size_t amount) :
+    Substrings(minl, maxl)
+    , amount(amount)
+    , trunc_cnt(0)
+{
+    ram_size = get_ram_size();
+}
 
 SubstringsConcurrent::~SubstringsConcurrent() {}
 
-generator_ns::generator<ResultEl> SubstringsConcurrent::top_c(size_t amount)
+generator_ns::generator<ResultEl> SubstringsConcurrent::top_c()
 {
     top_w(result, rkeys, amount);
     Matcher matcher(0.8);
@@ -91,15 +99,67 @@ generator_ns::generator<ResultEl> SubstringsConcurrent::top_c(size_t amount)
         co_yield i;
 }
 
-void SubstringsConcurrent::accumulate(ReducedKeys& rkeys)
+void SubstringsConcurrent::process_c(const string& path, bool ascii, size_t scale)
 {
-    for (auto& [key, value] : keys)
+    const unsigned procs_count = max(thread::hardware_concurrency() * 2, 1u);
+    const auto estms = tune_on_size(path, procs_count, scale);
+    process_body(path, estms, ascii);
+}
+
+void SubstringsConcurrent::accumulate(ReducedKeys& rkeys, size_t drop)
+{
+    for (const auto& [key, value] : keys)
     {
-        if (value > 1)
-        {
+        if (value > drop)
             rkeys[string(key)] += value;
-        }
     }
 }
 
+SubstringsConcurrent::Estimations SubstringsConcurrent::tune_on_size(const string& path, unsigned pool_size, unsigned scale) const
+{
+    const auto fsize = filesystem::file_size(path);
+    if (fsize / pool_size <= maxl) {
+        pool_size = 1;
+        scale = 1;
+    }
+    else if (!scale) {
+        if (ram_size) {
+            auto ram = ram_size / 2;
+            scale = max(
+                static_cast<size_t>(1),
+                (fsize * (maxl - minl + 1) * (sizeof(pair<DataView, size_t>) * 5 / 4)) / (ram * TOSKIP)
+            );
+        }
+        else
+            scale = pool_size;
+    }
+    size_t psize = static_cast<size_t>(pool_size) * scale;
+    size_t dv = fsize / psize;
+    if (dv < maxl) {
+        psize = fsize / maxl;
+        dv = fsize / psize;
+    }
+    size_t md = fsize % psize;
+    return { psize, dv, md, pool_size, scale };
+}
 
+void SubstringsConcurrent::truncate()
+{
+    auto vol = calc_reserve();
+    auto sz = rkeys.size();
+    if (vol >= sz / 2 || sz < (ram_size / 4) / ((sizeof(pair<Data, size_t>) * 5 / 4) + (minl + maxl) / 2))
+        return;
+    size_t minv = numeric_limits<size_t>::max();
+    size_t maxv = 0;
+    for (const auto& i : rkeys)
+    {
+        if (i.second < minv)
+            minv = i.second;
+        if (i.second > maxv)
+            maxv = i.second;
+    }
+    auto lbnd = (maxv - minv) / sz * (sz - vol) + minv;
+
+    // free up space within rkeys for new ones
+    erase_if(rkeys, [=](const auto& i) { return i.second <= lbnd; });
+}

@@ -11,6 +11,7 @@ set(Header_files
     "Matcher.hpp"
     "Substrings.hpp"
     "timeit.hpp"
+    "system.hpp"
 )
 source_group("Header files" FILES ${Header_files})
 
@@ -19,8 +20,9 @@ set(Source_files
     "main.cpp"
     "Matcher.cpp"
     "Substrings.cpp"
-    "$<$<BOOL:${MSVC}>:process_c_ep.cpp>"
-    "$<$<NOT:$<BOOL:${MSVC}>>:process_c_thirdp.cpp>"
+    "system.cpp"
+    "$<$<BOOL:${MSVC}>:process_body_ep.cpp>"
+    "$<$<NOT:$<BOOL:${MSVC}>>:process_body_thirdp.cpp>"
 )
 source_group("Source files" FILES ${Source_files})
 
