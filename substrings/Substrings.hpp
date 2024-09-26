@@ -49,6 +49,7 @@ namespace substrings
     constexpr auto TRUNC_EVERY = 8u;
     constexpr auto WORK_MEM_DIV = 2u;
     constexpr auto KEYS_MEM_DIV = 5u;
+    constexpr auto DFLT_SCALE = 8u;
 
     using Data = std::string;
     using DataView = std::string_view;

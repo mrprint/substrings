@@ -126,7 +126,7 @@ SubstringsConcurrent::Estimations SubstringsConcurrent::tune_on_size(const strin
         if (ram_size) {
             auto ram = ram_size / WORK_MEM_DIV;
             scale = max(
-                8u,
+                DFLT_SCALE,
                 static_cast<unsigned>((fsize * (maxl - minl + 1) * (sizeof(WorkEl) * 5 / 4)) / (ram * TO_SKIP))
             );
         }
