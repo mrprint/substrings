@@ -53,7 +53,7 @@ void Substrings::process(DataView data, bool ascii)
 {
     EntropyCache ecache;
     keys.clear();
-    auto skip = [](auto i) { return i % TOSKIP == 0; };
+    auto skip = [](auto i) { return i % TO_SKIP == 0; };
     for (size_t start : views::iota( 0u, data.length() - maxl))
     {
         for (size_t length : views::iota(minl, maxl + 1u) | views::filter(skip))
@@ -61,7 +61,7 @@ void Substrings::process(DataView data, bool ascii)
             DataView subd = data.substr(start, length);
             if (ascii && !is_ascii(subd))
                 break;
-            float ent = ecache.estimate(subd, start, length);
+            float ent = ecache.estimate(subd, start, static_cast<unsigned>(length));
             if (ent >= MAX_ENT || ent <= MIN_ENT)
                 break;
             keys[subd]++;
@@ -84,7 +84,7 @@ SubstringsConcurrent::~SubstringsConcurrent() {}
 generator_ns::generator<ResultEl> SubstringsConcurrent::top_c()
 {
     top_w(result, rkeys, amount);
-    Matcher matcher(0.8);
+    Matcher matcher(MATCH_RATIO);
     for (const auto& i :
         result
         | views::filter(
@@ -102,7 +102,7 @@ generator_ns::generator<ResultEl> SubstringsConcurrent::top_c()
 void SubstringsConcurrent::process_c(const string& path, bool ascii, size_t scale)
 {
     const unsigned procs_count = max(thread::hardware_concurrency() * 2, 1u);
-    const auto estms = tune_on_size(path, procs_count, scale);
+    const auto estms = tune_on_size(path, procs_count, static_cast<unsigned>(scale));
     process_body(path, estms, ascii);
 }
 
@@ -124,10 +124,10 @@ SubstringsConcurrent::Estimations SubstringsConcurrent::tune_on_size(const strin
     }
     else if (!scale) {
         if (ram_size) {
-            auto ram = ram_size / 2;
+            auto ram = ram_size / WORK_MEM_DIV;
             scale = max(
-                static_cast<size_t>(1),
-                (fsize * (maxl - minl + 1) * (sizeof(pair<DataView, size_t>) * 5 / 4)) / (ram * TOSKIP)
+                8u,
+                static_cast<unsigned>((fsize * (maxl - minl + 1) * (sizeof(WorkEl) * 5 / 4)) / (ram * TO_SKIP))
             );
         }
         else
@@ -140,14 +140,14 @@ SubstringsConcurrent::Estimations SubstringsConcurrent::tune_on_size(const strin
         dv = fsize / psize;
     }
     size_t md = fsize % psize;
-    return { psize, dv, md, pool_size, scale };
+    return { psize, dv, md, pool_size };
 }
 
 void SubstringsConcurrent::truncate()
 {
     auto vol = calc_reserve();
     auto sz = rkeys.size();
-    if (vol >= sz / 2 || sz < (ram_size / 4) / ((sizeof(pair<Data, size_t>) * 5 / 4) + (minl + maxl) / 2))
+    if (vol >= sz / 2 || sz < (ram_size / KEYS_MEM_DIV) / ((sizeof(ResultEl) * 5 / 4) + (minl + maxl) / 2))
         return;
     size_t minv = numeric_limits<size_t>::max();
     size_t maxv = 0;

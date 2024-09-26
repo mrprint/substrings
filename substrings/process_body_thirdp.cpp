@@ -57,7 +57,7 @@ void SubstringsConcurrent::process_body(const string& path, const Estimations& e
             {
                 scoped_lock lock(accmtx);
                 subs.accumulate(rkeys);
-                if (++trunc_cnt >= estms.pool_size / 2) {
+                if (++trunc_cnt >= TRUNC_EVERY) {
                     trunc_cnt = 0;
                     truncate();
                 }

@@ -96,7 +96,7 @@ float EntropyCache::shannon_entropy(DataView data)
 
     if (data.length() < 2) [[unlikely]]
         return ent;
-    float size = data.length();
+    auto size = static_cast<float>(data.length());
     for (uint8_t c : data) [[likely]]
         lfreqs[c]++;
     for (unsigned i : lfreqs)
@@ -116,7 +116,7 @@ float EntropyCache::shannon_entropy_save(DataView data)
     if (data.length() < 2) [[unlikely]] {
         return ent;
     }
-    float size = data.length();
+    auto size = static_cast<float>(data.length());
     for (uint8_t c : data) [[likely]]
         freqs[c].freq++;
     for (unsigned i = 0; i < freqs.size(); ++i)

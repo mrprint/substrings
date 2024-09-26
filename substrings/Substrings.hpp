@@ -44,11 +44,16 @@ namespace substrings
 
     constexpr auto MAX_ENT = 3.5f;
     constexpr auto MIN_ENT = 2.5f;
-    constexpr auto TOSKIP = 3u;
+    constexpr auto MATCH_RATIO = 0.8;
+    constexpr auto TO_SKIP = 3u;
+    constexpr auto TRUNC_EVERY = 8u;
+    constexpr auto WORK_MEM_DIV = 2u;
+    constexpr auto KEYS_MEM_DIV = 5u;
 
     using Data = std::string;
     using DataView = std::string_view;
     using Keys = phmap::flat_hash_map<DataView, std::size_t>;
+    using WorkEl = std::pair<DataView, std::size_t>;
     using ResultEl = std::pair<Data, std::size_t>;
     using Result = std::vector<ResultEl>;
     using ReducedKeys = phmap::flat_hash_map<Data, std::size_t>;
@@ -77,7 +82,7 @@ namespace substrings
         }
         size_t calc_reserve(std::size_t amount) const
         {
-            return amount * maxl * (maxl - minl + 1) / TOSKIP;
+            return amount * maxl * (maxl - minl + 1) / TO_SKIP;
         }
         void top_w(auto& result, const auto& keys, std::size_t amount)
         {
@@ -93,7 +98,7 @@ namespace substrings
     protected:
         struct Estimations {
             std::size_t psize, dv, md;
-            unsigned pool_size, scale;
+            unsigned pool_size;
         };
 
         ReducedKeys rkeys;
