@@ -46,7 +46,7 @@ namespace substrings
     constexpr auto MIN_ENT = 2.5f;
     constexpr auto MATCH_RATIO = 0.8;
     constexpr auto TRUNC_EVERY = 8u;
-    constexpr auto WORK_MEM_DIV = 2u;
+    constexpr auto WORK_MEM_DIV = 3u;
     constexpr auto KEYS_MEM_DIV = 5u;
     constexpr auto DFLT_SCALE = 8u;
 
