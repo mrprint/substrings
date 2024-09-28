@@ -33,7 +33,7 @@
 using namespace std;
 using namespace substrings;
 
-Substrings::Substrings(size_t minl, size_t maxl) : minl(minl), maxl(maxl) {}
+Substrings::Substrings(size_t minl, size_t maxl, unsigned to_skip) : minl(minl), maxl(maxl), to_skip(to_skip) {}
 
 Substrings::~Substrings() {}
 
@@ -49,11 +49,11 @@ void Substrings::process_file(const string& path)
     process(sdata);
 }
 
-void Substrings::process(DataView data, bool ascii)
+void Substrings::process(DataView data, bool ascii, bool filter)
 {
     EntropyCache ecache;
     keys.clear();
-    auto skip = [](auto i) { return i % TO_SKIP == 0; };
+    auto skip = [this](auto i) { return i % to_skip == 0; };
     for (size_t start : views::iota( 0u, data.length() - maxl))
     {
         for (size_t length : views::iota(minl, maxl + 1u) | views::filter(skip))
@@ -61,9 +61,11 @@ void Substrings::process(DataView data, bool ascii)
             DataView subd = data.substr(start, length);
             if (ascii && !is_ascii(subd))
                 break;
-            float ent = ecache.estimate(subd, start, static_cast<unsigned>(length));
-            if (ent >= MAX_ENT || ent <= MIN_ENT)
-                break;
+            if (filter) {
+                float ent = ecache.estimate(subd, start, static_cast<unsigned>(length));
+                if (ent >= MAX_ENT || ent <= MIN_ENT)
+                    break;
+            }
             keys[subd]++;
         }
     }
@@ -71,9 +73,10 @@ void Substrings::process(DataView data, bool ascii)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-SubstringsConcurrent::SubstringsConcurrent(size_t minl, size_t maxl, size_t amount) :
-    Substrings(minl, maxl)
+SubstringsConcurrent::SubstringsConcurrent(size_t minl, size_t maxl, unsigned to_skip, unsigned drop_volume, size_t amount) :
+    Substrings(minl, maxl, to_skip)
     , amount(amount)
+    , drop_volume(drop_volume)
     , trunc_cnt(0)
 {
     ram_size = get_ram_size();
@@ -99,23 +102,23 @@ generator_ns::generator<ResultEl> SubstringsConcurrent::top_c()
         co_yield i;
 }
 
-void SubstringsConcurrent::process_c(const string& path, bool ascii, size_t scale)
+void SubstringsConcurrent::process_c(const string& path, bool ascii, bool filter, size_t scale)
 {
     const unsigned procs_count = max(thread::hardware_concurrency() * 2, 1u);
     const auto estms = tune_on_size(path, procs_count, static_cast<unsigned>(scale));
-    process_body(path, estms, ascii);
+    process_body(path, estms, ascii, filter);
 }
 
-void SubstringsConcurrent::accumulate(ReducedKeys& rkeys, size_t drop)
+void SubstringsConcurrent::accumulate(ReducedKeys& rkeys)
 {
     for (const auto& [key, value] : keys)
     {
-        if (value > drop)
+        if (value > drop_volume)
             rkeys[string(key)] += value;
     }
 }
 
-SubstringsConcurrent::Estimations SubstringsConcurrent::tune_on_size(const string& path, unsigned pool_size, unsigned scale) const
+SubstringsConcurrent::Estimations SubstringsConcurrent::tune_on_size(const string& path, unsigned pool_size, unsigned scale)
 {
     const auto fsize = filesystem::file_size(path);
     if (fsize / pool_size <= maxl) {
@@ -127,7 +130,7 @@ SubstringsConcurrent::Estimations SubstringsConcurrent::tune_on_size(const strin
             auto ram = ram_size / WORK_MEM_DIV;
             scale = max(
                 DFLT_SCALE,
-                static_cast<unsigned>((fsize * (maxl - minl + 1) * (sizeof(WorkEl) * 5 / 4)) / (ram * TO_SKIP))
+                static_cast<unsigned>((fsize * (maxl - minl + 1) * (sizeof(WorkEl) * 5 / 4)) / (ram * to_skip))
             );
         }
         else
@@ -138,6 +141,7 @@ SubstringsConcurrent::Estimations SubstringsConcurrent::tune_on_size(const strin
     if (dv < maxl) {
         psize = fsize / maxl;
         dv = fsize / psize;
+        drop_volume = 0;
     }
     size_t md = fsize % psize;
     return { psize, dv, md, pool_size };
@@ -159,6 +163,17 @@ void SubstringsConcurrent::truncate()
             maxv = i.second;
     }
     auto lbnd = (maxv - minv) / sz * (sz - vol) + minv;
+
+    /*
+    ReducedKeys tkeys;
+    tkeys.reserve(vol);
+    for (auto&& i : rkeys)
+    {
+        if (i.second > lbnd)
+            tkeys.emplace(move(i));
+    }
+    rkeys.swap(tkeys);
+    */
 
     // free up space within rkeys for new ones
     erase_if(rkeys, [=](const auto& i) { return i.second <= lbnd; });

@@ -31,7 +31,7 @@
 using namespace std;
 using namespace substrings;
 
-void SubstringsConcurrent::process_body(const string& path, const Estimations& estms, bool ascii)
+void SubstringsConcurrent::process_body(const string& path, const Estimations& estms, bool ascii, bool filter)
 {
     TimeIt time_it("Calculation time is");
 
@@ -43,24 +43,35 @@ void SubstringsConcurrent::process_body(const string& path, const Estimations& e
     taskflow.for_each(slci.begin(), slci.end(),
         [&, ascii](const pair<size_t, size_t>& rng)
         {
-            string tdata(rng.second, '\0');
+            try
             {
-                scoped_lock lock(iomtx); // make file access sequential
-                ifstream f(path, ios::in | ios::binary);
-                f.seekg(rng.first);
-                f.read(tdata.data(), rng.second);
-            }
-
-            SubstringsConcurrent subs(minl, maxl, amount);
-            subs.process(tdata, ascii);
-
-            {
-                scoped_lock lock(accmtx);
-                subs.accumulate(rkeys);
-                if (++trunc_cnt >= TRUNC_EVERY) {
-                    trunc_cnt = 0;
-                    truncate();
+                string tdata(rng.second, '\0');
+                {
+                    scoped_lock lock(iomtx); // make file access sequential
+                    ifstream f(path, ios::in | ios::binary);
+                    f.seekg(rng.first);
+                    f.read(tdata.data(), rng.second);
                 }
+
+                SubstringsConcurrent subs(minl, maxl, to_skip, drop_volume, amount);
+                subs.process(tdata, ascii, filter);
+
+                {
+                    scoped_lock lock(accmtx);
+                    subs.accumulate(rkeys);
+                    if (++trunc_cnt >= TRUNC_EVERY) {
+                        trunc_cnt = 0;
+                        truncate();
+                    }
+                }
+            }
+            catch (const exception& ex) {
+                cerr << "Exception occured: " << ex.what() << endl;
+                throw;
+            }
+            catch (...) {
+                cerr << "Unknown exception occured!" << endl;
+                throw;
             }
         });
 

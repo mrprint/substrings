@@ -45,7 +45,6 @@ namespace substrings
     constexpr auto MAX_ENT = 3.5f;
     constexpr auto MIN_ENT = 2.5f;
     constexpr auto MATCH_RATIO = 0.8;
-    constexpr auto TO_SKIP = 3u;
     constexpr auto TRUNC_EVERY = 8u;
     constexpr auto WORK_MEM_DIV = 2u;
     constexpr auto KEYS_MEM_DIV = 5u;
@@ -66,11 +65,12 @@ namespace substrings
         Keys keys;
         Result result;
         std::size_t minl, maxl;
+        unsigned to_skip;
     public:
-        Substrings(std::size_t minl, std::size_t maxl);
+        Substrings(std::size_t minl, std::size_t maxl, unsigned to_skip);
         virtual ~Substrings();
         void process_file(const std::string& path);
-        void process(DataView data, bool ascii = false);
+        void process(DataView data, bool ascii = false, bool filter = true);
         auto top(std::size_t amount)
         {
             top_w(result, keys, amount);
@@ -83,7 +83,7 @@ namespace substrings
         }
         size_t calc_reserve(std::size_t amount) const
         {
-            return amount * maxl * (maxl - minl + 1) / TO_SKIP;
+            return amount * maxl * (maxl - minl + 1) / to_skip;
         }
         void top_w(auto& result, const auto& keys, std::size_t amount)
         {
@@ -105,20 +105,21 @@ namespace substrings
         ReducedKeys rkeys;
         std::size_t ram_size;
         std::size_t amount;
+        unsigned drop_volume;
         unsigned trunc_cnt;
     public:
-        SubstringsConcurrent(std::size_t minl, std::size_t maxl, std::size_t amount);
+        SubstringsConcurrent(std::size_t minl, std::size_t maxl, unsigned to_skip, unsigned drop_volume, std::size_t amount);
         virtual ~SubstringsConcurrent();
-        void process_c(const std::string& path, bool ascii = false, std::size_t scale = 1);
+        void process_c(const std::string& path, bool ascii = false, bool filter = true, std::size_t scale = 1);
         generator_ns::generator<ResultEl> top_c();
     protected:
         size_t calc_reserve() const
         {
             return Substrings::calc_reserve(amount);
         }
-        void process_body(const std::string& path, const Estimations& estms, bool ascii = false);
-        void accumulate(ReducedKeys& rkeys, std::size_t drop = 1);
-        Estimations tune_on_size(const std::string& path, unsigned pool_size, unsigned scale) const;
+        void process_body(const std::string& path, const Estimations& estms, bool ascii = false, bool filter = true);
+        void accumulate(ReducedKeys& rkeys);
+        Estimations tune_on_size(const std::string& path, unsigned pool_size, unsigned scale);
         void truncate();
         static auto slice(const Estimations estm, std::size_t maxl)
         {

@@ -36,10 +36,12 @@ using namespace substrings;
 static bool handle_args(int argc, char* argv[]);
 
 static string input_file;
-static int64_t lmin, lmax;
 static int64_t top;
+static int64_t lmin, lmax;
+static int64_t skip, drop;
 static int64_t scale;
 static bool ascii;
+static bool nofilter;
 
 int main(int argc, char* argv[])
 {
@@ -51,9 +53,9 @@ int main(int argc, char* argv[])
         if (!handle_args(argc, argv))
             return 1;
 
-        SubstringsConcurrent subs(lmin, lmax, top);
+        SubstringsConcurrent subs(lmin, lmax, skip, drop, top);
 #if !defined(_DEBUG) && !defined(DEBUG)
-        subs.process_c(input_file, ascii, scale);
+        subs.process_c(input_file, ascii, !nofilter, scale);
         for (auto&& [key, value] : subs.top_c())
         {
             cout << value << " \t" << absl::CHexEscape(key) << '\n';
@@ -69,10 +71,7 @@ int main(int argc, char* argv[])
 #endif
         cout.flush();
     }
-    catch (filesystem::filesystem_error& ex) {
-        cerr << "Exception occured: " << ex.what() << endl;
-    }
-    catch (ifstream::failure& ex) {
+    catch (const exception &ex) {
         cerr << "Exception occured: " << ex.what() << endl;
     }
     catch (...) {
@@ -86,10 +85,13 @@ static bool handle_args(int argc, char* argv[])
     cxxopts::Options options("substrings", "The tool designed to find the most frequently occurring sequences in a gigabyte binary file");
     options.add_options()
         ("input", "Input file", cxxopts::value<string>())
-        ("t,top", "Amount of values to get ( >0 )", cxxopts::value<int64_t>()->default_value("30"))
+        ("t,top", format("Amount of values to get ( 0 < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("30"))
         ("m,min", format("Minimal length of strings to search ( 6 < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("15"))
         ("x,max", format("Maximal length of strings to search ( min < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("30"))
+        ("k,skip", format("Lengths to skip for probing step ( 0 < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("3"))
+        ("d,drop", format("Maximal volume of occurences to not accumulate ( 0 <= x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("1"))
         ("a,ascii", "Search for ascii strings only", cxxopts::value<bool>()->default_value("false"))
+        ("f,nofilter", "Do not prefilter by entropy index", cxxopts::value<bool>()->default_value("false"))
         ("s,scale", "Multi-threaded load scaling factor. Using 0 means trying to calculate it heuristically", cxxopts::value<int64_t>()->default_value("0"));
 
     auto print_desc = [&]() { cerr << options.help() << endl; };
@@ -99,13 +101,16 @@ static bool handle_args(int argc, char* argv[])
         auto result = options.parse(argc, argv);
 
         input_file = result["input"].as<string>();
+        top = result["top"].as<int64_t>();
         lmin = result["min"].as<int64_t>();
         lmax = result["max"].as<int64_t>();
-        top = result["top"].as<int64_t>();
-        scale = result["scale"].as<int64_t>();
+        skip = result["skip"].as<int64_t>();
+        drop = result["drop"].as<int64_t>();
         ascii = result["ascii"].as<bool>();
+        nofilter = result["nofilter"].as<bool>();
+        scale = result["scale"].as<int64_t>();
 
-        if (input_file.empty() || top < 1 || lmin < 7 || lmax < lmin) {
+        if (input_file.empty() || top < 1 || lmin < 7 || lmax < lmin || skip < 1) {
             print_desc();
             return false;
         }
