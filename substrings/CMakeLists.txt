@@ -21,8 +21,6 @@ set(Source_files
     "Matcher.cpp"
     "Substrings.cpp"
     "system.cpp"
-    "$<$<BOOL:${MSVC}>:process_body_ep.cpp>"
-    "$<$<NOT:$<BOOL:${MSVC}>>:process_body_thirdp.cpp>"
 )
 source_group("Source files" FILES ${Source_files})
 

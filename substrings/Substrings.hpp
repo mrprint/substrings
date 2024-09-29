@@ -117,14 +117,13 @@ namespace substrings
         {
             return Substrings::calc_reserve(amount);
         }
-        void process_body(const std::string& path, const Estimations& estms, bool ascii = false, bool filter = true);
         void accumulate(ReducedKeys& rkeys);
         Estimations tune_on_size(const std::string& path, unsigned pool_size, unsigned scale);
         void truncate();
         static auto slice(const Estimations estm, std::size_t maxl)
         {
-            return std::views::iota(static_cast<std::size_t>(0), estm.psize)
-                | std::views::transform([=](auto i) {return std::pair<std::size_t, std::size_t>{
+            return std::views::iota(0u, static_cast<unsigned>(estm.psize))
+                | std::views::transform([=](std::size_t i) {return std::pair<std::size_t, std::size_t>{
                 (i == 0u) ? i * estm.dv : i * estm.dv - maxl,
                     (i < estm.psize - 1u) ? ((i == 0u) ? estm.dv : estm.dv + maxl) : estm.dv + maxl + estm.md}; });
         }

@@ -38,8 +38,8 @@ static bool handle_args(int argc, char* argv[]);
 static string input_file;
 static int64_t top;
 static int64_t lmin, lmax;
-static int64_t skip, drop;
 static int64_t scale;
+static unsigned skip, drop;
 static bool ascii;
 static bool nofilter;
 
@@ -88,8 +88,8 @@ static bool handle_args(int argc, char* argv[])
         ("t,top", format("Amount of values to get ( 0 < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("30"))
         ("m,min", format("Minimal length of strings to search ( 6 < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("15"))
         ("x,max", format("Maximal length of strings to search ( min < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("30"))
-        ("k,skip", format("Lengths to skip for probing step ( 0 < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("3"))
-        ("d,drop", format("Maximal volume of occurences to not accumulate ( 0 <= x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<int64_t>()->default_value("1"))
+        ("k,skip", format("Lengths to skip for probing step ( 0 < x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<unsigned>()->default_value("3"))
+        ("d,drop", format("Maximal volume of occurences to not accumulate ( 0 <= x < {} )", numeric_limits<unsigned>::max()), cxxopts::value<unsigned>()->default_value("1"))
         ("a,ascii", "Search for ascii strings only", cxxopts::value<bool>()->default_value("false"))
         ("f,nofilter", "Do not prefilter by entropy index", cxxopts::value<bool>()->default_value("false"))
         ("s,scale", "Multi-threaded load scaling factor. Using 0 means trying to calculate it heuristically", cxxopts::value<int64_t>()->default_value("0"));
@@ -104,8 +104,8 @@ static bool handle_args(int argc, char* argv[])
         top = result["top"].as<int64_t>();
         lmin = result["min"].as<int64_t>();
         lmax = result["max"].as<int64_t>();
-        skip = result["skip"].as<int64_t>();
-        drop = result["drop"].as<int64_t>();
+        skip = result["skip"].as<unsigned>();
+        drop = result["drop"].as<unsigned>();
         ascii = result["ascii"].as<bool>();
         nofilter = result["nofilter"].as<bool>();
         scale = result["scale"].as<int64_t>();

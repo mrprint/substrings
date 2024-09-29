@@ -24,6 +24,9 @@
 #include <fstream>
 #include <thread>
 #include <algorithm>
+#include <mutex>
+#include <taskflow/taskflow.hpp>
+#include <taskflow/algorithm/for_each.hpp>
 #include "Substrings.hpp"
 #include "EntropyCache.hpp"
 #include "Matcher.hpp"
@@ -104,9 +107,54 @@ generator_ns::generator<ResultEl> SubstringsConcurrent::top_c()
 
 void SubstringsConcurrent::process_c(const string& path, bool ascii, bool filter, size_t scale)
 {
+    TimeIt time_it("Calculation time is");
+
     const unsigned procs_count = max(thread::hardware_concurrency() * 2, 1u);
     const auto estms = tune_on_size(path, procs_count, static_cast<unsigned>(scale));
-    process_body(path, estms, ascii, filter);
+
+    mutex iomtx, accmtx;
+    tf::Executor executor(estms.pool_size);
+    tf::Taskflow taskflow;
+
+    auto slci = slice(estms, maxl);
+    taskflow.for_each(slci.begin(), slci.end(),
+        [&, ascii](const pair<size_t, size_t>& rng)
+        {
+            try
+            {
+                string tdata(rng.second, '\0');
+                {
+                    scoped_lock lock(iomtx); // make file access sequential
+                    ifstream f(path, ios::in | ios::binary);
+                    f.seekg(rng.first);
+                    f.read(tdata.data(), rng.second);
+                }
+
+                SubstringsConcurrent subs(minl, maxl, to_skip, drop_volume, amount);
+                subs.process(tdata, ascii, filter);
+
+                {
+                    scoped_lock lock(accmtx);
+                    subs.accumulate(rkeys);
+                    if (drop_volume && ++trunc_cnt >= TRUNC_EVERY) {
+                        trunc_cnt = 0;
+                        truncate();
+                    }
+                }
+            }
+            catch (const exception& ex) {
+                cerr << "Exception occured: " << ex.what() << endl;
+                throw;
+            }
+            catch (...) {
+                cerr << "Unknown exception occured!" << endl;
+                throw;
+            }
+        });
+
+    executor.run(taskflow).get();
+    //taskflow.dump(std::cout);
+
 }
 
 void SubstringsConcurrent::accumulate(ReducedKeys& rkeys)
@@ -163,17 +211,6 @@ void SubstringsConcurrent::truncate()
             maxv = i.second;
     }
     auto lbnd = (maxv - minv) / sz * (sz - vol) + minv;
-
-    /*
-    ReducedKeys tkeys;
-    tkeys.reserve(vol);
-    for (auto&& i : rkeys)
-    {
-        if (i.second > lbnd)
-            tkeys.emplace(move(i));
-    }
-    rkeys.swap(tkeys);
-    */
 
     // free up space within rkeys for new ones
     erase_if(rkeys, [=](const auto& i) { return i.second <= lbnd; });
