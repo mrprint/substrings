@@ -162,7 +162,7 @@ void SubstringsConcurrent::accumulate(ReducedKeys& rkeys)
     for (const auto& [key, value] : keys)
     {
         if (value > drop_volume)
-            rkeys[string(key)] += value;
+            rkeys[key] += value;
     }
 }
 
