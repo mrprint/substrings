@@ -9,4 +9,4 @@
 	url = https://github.com/greg7mdp/parallel-hashmap
 [submodule "substrings/thirdpts/taskflow"]
 	path = substrings/thirdpts/taskflow
-	url = https://github.com/taskflow/taskflow.git
+	url = https://github.com/mrprint/taskflow.git
