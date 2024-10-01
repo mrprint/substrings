@@ -12,6 +12,7 @@ set(Header_files
     "Substrings.hpp"
     "timeit.hpp"
     "system.hpp"
+    "cli.hpp"
 )
 source_group("Header files" FILES ${Header_files})
 
@@ -21,6 +22,7 @@ set(Source_files
     "Matcher.cpp"
     "Substrings.cpp"
     "system.cpp"
+    "cli.cpp"
 )
 source_group("Source files" FILES ${Source_files})
 

@@ -123,9 +123,15 @@ namespace substrings
         static auto slice(const Estimations estm, std::size_t maxl)
         {
             return std::views::iota(static_cast<std::size_t>(0), estm.psize)
-                | std::views::transform([=](auto i) {return std::pair<std::size_t, std::size_t>{
-                (i == 0u) ? i * estm.dv : i * estm.dv - maxl,
-                    (i < estm.psize - 1u) ? ((i == 0u) ? estm.dv : estm.dv + maxl) : estm.dv + maxl + estm.md}; });
+                | std::views::transform(
+                    [=](auto i)
+                    {
+                        return std::pair<std::size_t, std::pair<std::size_t, std::size_t>>{
+                            i,
+                            { (i == 0u) ? i * estm.dv : i * estm.dv - maxl,
+                                (i < estm.psize - 1u) ? ((i == 0u) ? estm.dv : estm.dv + maxl) : estm.dv + maxl + estm.md }
+                        };
+                    });
         }
     };
 

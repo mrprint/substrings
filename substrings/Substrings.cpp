@@ -31,6 +31,7 @@
 #include "EntropyCache.hpp"
 #include "Matcher.hpp"
 #include "system.hpp"
+#include "cli.hpp"
 #include "timeit.hpp"
 
 using namespace std;
@@ -112,14 +113,18 @@ void SubstringsConcurrent::process_c(const string& path, bool ascii, bool filter
     const unsigned procs_count = max(thread::hardware_concurrency() * 2, 1u);
     const auto estms = tune_on_size(path, procs_count, static_cast<unsigned>(scale));
 
+    ProgressIndicator indicator(estms.psize);
     mutex iomtx, accmtx;
     tf::Executor executor(estms.pool_size);
     tf::Taskflow taskflow;
 
+    indicator.display(ProgressIndicator::Phase::Begin);
+
     auto slci = slice(estms, maxl);
     taskflow.for_each(slci.begin(), slci.end(),
-        [&, ascii](const pair<size_t, size_t>& rng)
+        [&, ascii](const pair<size_t, pair<size_t, size_t>>& rnginfo)
         {
+            const auto& [ino, rng] = rnginfo;
             try
             {
                 string tdata(rng.second, '\0');
@@ -141,6 +146,8 @@ void SubstringsConcurrent::process_c(const string& path, bool ascii, bool filter
                         truncate();
                     }
                 }
+                indicator.update(ino);
+                indicator.display();
             }
             catch (const exception& ex) {
                 cerr << "Exception occured: " << ex.what() << endl;
@@ -153,7 +160,8 @@ void SubstringsConcurrent::process_c(const string& path, bool ascii, bool filter
         });
 
     executor.run(taskflow).get();
-    //taskflow.dump(std::cout);
+
+    indicator.display(ProgressIndicator::Phase::End);
 
 }
 
@@ -188,7 +196,7 @@ SubstringsConcurrent::Estimations SubstringsConcurrent::tune_on_size(const strin
     size_t dv = fsize / psize;
     if (dv < maxl) {
         psize = fsize / maxl;
-        dv = fsize / psize;
+        dv = maxl;
         drop_volume = 0;
     }
     size_t md = fsize % psize;
