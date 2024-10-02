@@ -2,6 +2,7 @@
 
 It was originally intended for crash dump analysis, so the values ​​obtained are approximate.
 However, you can ask the tool to be more precise.
+
 You require a c++ compiler with standard 23's generator support, e.g. g++14 or higher.
 
 #### Usage
