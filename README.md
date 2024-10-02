@@ -1,12 +1,12 @@
-# The tool designed to find the most common sequences in a binary file of gigabytes in size
+# The tool designed to find FAST the most common sequences in a binary file of gigabytes in size
 
-It was originally aimed at analyzing crush dumps.
+It was originally intended for crash dump analysis, so the values ​​obtained are approximate.
+However, you can ask the tool to be more precise.
 You require a c++ compiler with standard 23's generator support, e.g. g++14 or higher.
 
 #### Usage
 
-Run to view all options. You may require to set up your desired range of length
-and limit the number of results.
+Run to view all options. In most cases, you will only need to specify the path to the file.
 
 #### Compiling
 
