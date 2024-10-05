@@ -128,7 +128,6 @@ else()
         -ftree-vectorize;
         -DNDEBUG
     >
-    -march=x86-64-v3;
     ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
     ${DEFAULT_CXX_EXCEPTION_HANDLING}
     )
