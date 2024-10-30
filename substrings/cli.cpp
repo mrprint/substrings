@@ -79,7 +79,9 @@ bool handle_args(int argc, char* argv[])
 
 void ProgressIndicator::display(Phase phase)
 {
-    scoped_lock lock(mtx);
+    unique_lock lock(mtx, defer_lock);
+    if (!lock.try_lock())
+        return;
     if (phase == Phase::Work) {
         if (!updated)
             return;
